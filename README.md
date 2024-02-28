@@ -24,3 +24,7 @@
 ### Add a new contract
 
 `npx blueprint create ContractName` or `yarn blueprint create ContractName`
+
+### References
+- https://github.com/ton-blockchain/token-contract/tree/main
+- https://github.com/getgems-io/nft-contracts/tree/main/packages/contracts/sources
