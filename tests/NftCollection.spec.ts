@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Address, Cell, beginCell, toNano } from '@ton/core';
+import { Address, Cell, beginCell, fromNano, toNano } from '@ton/core';
 import { NftCollection } from '../wrappers/NftCollection';
 import '@ton/test-utils';
 import { compile } from '@ton/blueprint';
@@ -53,7 +53,35 @@ describe('NftCollection', () => {
         // blockchain and nftCollection are ready to use
     });
 
-    it('checks for any data', async() => {
-        console.log("COLLECTION DATA", await nftCollection.getCollectionData())
+    it('should mint a new nft', async() => {
+
+        const balance = await deployer.getBalance()
+
+        await nftCollection.sendMint(deployer.getSender(), {
+            nftAmount: toNano('0.05'),
+            nftId: 0,
+            content: 'ipfs://ITEM_1',
+            value: toNano('0.1')
+        })
+        
+        await nftCollection.sendMint(deployer.getSender(), {
+            nftAmount: toNano('0.05'),
+            nftId: 1,
+            content: 'ipfs://ITEM_1',
+            value: toNano('0.1')
+        })
+
+        const collectionData = await nftCollection.getCollectionData()
+
+        const item1Addr = await nftCollection.getItemAddr(1)
+
+        const item2Addr = await nftCollection.getItemAddr(2)
+
+        console.log("COLLECTION DATA", collectionData, item1Addr, item2Addr, fromNano(balance))
+
+    })
+
+    it('batch mint', async() => {
+
     })
 });

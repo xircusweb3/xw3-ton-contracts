@@ -36,4 +36,5 @@ describe('SbtCollection', () => {
         // the check is done inside beforeEach
         // blockchain and sbtCollection are ready to use
     });
+
 });
