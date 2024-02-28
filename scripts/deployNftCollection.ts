@@ -1,4 +1,4 @@
-import { Address, beginCell, toNano } from '@ton/core';
+import { Address, Cell, beginCell, toNano } from '@ton/core';
 import { NftCollection } from '../wrappers/NftCollection';
 import { NftItem } from '../wrappers/NftItem'
 import { compile, NetworkProvider } from '@ton/blueprint';
@@ -8,9 +8,9 @@ export async function run(provider: NetworkProvider) {
     const compiled = await compile('NftCollection')
 
     const owner:any = provider.sender().address?.toString()
-    const content = beginCell().storeStringTail('ipfs://SAMPLE_TON_COLLECTION_DATA').endCell()
+    const content = beginCell().storeRef(beginCell().storeStringTail('ipfs://SAMPLE_TON_COLLECTION_DATA').endCell()).endCell()
     const nftItem = await compile('NftItem')
-    const royalty = beginCell().endCell()
+    const royalty = Cell.EMPTY
 
     const params = {
         owner: Address.parse(owner),
@@ -24,9 +24,7 @@ export async function run(provider: NetworkProvider) {
 
     console.log("NFT COLLECTION", nftCollection)
 
-    // await nftCollection.sendDeploy(provider.sender(), toNano('0.05'));
+    await nftCollection.sendDeploy(provider.sender(), toNano('0.05'));
 
-    // await provider.waitForDeploy(nftCollection.address);
-
-    // run methods on `nftCollection`
+    await provider.waitForDeploy(nftCollection.address);
 }
