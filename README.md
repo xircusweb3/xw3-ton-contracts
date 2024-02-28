@@ -28,3 +28,6 @@
 ### References
 - https://github.com/ton-blockchain/token-contract/tree/main
 - https://github.com/getgems-io/nft-contracts/tree/main/packages/contracts/sources
+- https://github.com/romanovichim/TonFunClessons_Eng
+- https://github.com/ton-blockchain/token-contract/tree/main/ft
+- https://github.com/ton-blockchain/liquid-staking-contract/tree/main/contracts

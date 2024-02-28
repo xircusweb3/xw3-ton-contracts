@@ -3,7 +3,12 @@ import { SbtCollection } from '../wrappers/SbtCollection';
 import { compile, NetworkProvider } from '@ton/blueprint';
 
 export async function run(provider: NetworkProvider) {
-    const sbtCollection = provider.open(SbtCollection.createFromConfig({}, await compile('SbtCollection')));
+
+    const compiled = await compile('SbtCollection')
+
+    const sbtCollection = provider.open(SbtCollection.createFromConfig({}, compiled));
+
+    console.log("COMPILED", compiled, sbtCollection)
 
     await sbtCollection.sendDeploy(provider.sender(), toNano('0.05'));
 

@@ -1,9 +1,20 @@
-import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from '@ton/core';
+import { Address, beginCell, Cell,  Contract, contractAddress, ContractProvider, Sender, SendMode } from '@ton/core';
 
-export type NftCollectionConfig = {};
+export type NftCollectionConfig = {
+    owner: Address,
+    content: Cell,
+    nftItem: Cell,
+    royalty: Cell
+};
 
 export function nftCollectionConfigToCell(config: NftCollectionConfig): Cell {
-    return beginCell().endCell();
+    return beginCell()
+        .storeAddress(config.owner)
+        .storeUint(0, 64)
+        .storeRef(config.content)
+        .storeRef(config.nftItem)
+        .storeRef(config.royalty)
+        .endCell()
 }
 
 export class NftCollection implements Contract {
@@ -26,4 +37,16 @@ export class NftCollection implements Contract {
             body: beginCell().endCell(),
         });
     }
+
+    async getCollectionData(provider: ContractProvider) {
+        let { stack } = await provider.get('get_collection_data', []);
+        let nextItem = stack.readNumber();
+        let content = stack.readString();
+        let owner = stack.readAddress();
+        return {
+            nextItem,
+            content,
+            owner
+        }
+    }    
 }
