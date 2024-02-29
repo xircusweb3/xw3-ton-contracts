@@ -1,4 +1,4 @@
-import { toNano } from '@ton/core';
+import { Address, toNano } from '@ton/core';
 import { SbtCollection } from '../wrappers/SbtCollection';
 import { compile, NetworkProvider } from '@ton/blueprint';
 
@@ -6,7 +6,16 @@ export async function run(provider: NetworkProvider) {
 
     const compiled = await compile('SbtCollection')
 
-    const sbtCollection = provider.open(SbtCollection.createFromConfig({}, compiled));
+    const item = await compile('NftItem')
+
+    const owner:any = provider?.sender().address?.toString()
+
+    const sbtCollection = provider.open(SbtCollection.createFromConfig({
+        owner: Address.parse(owner),
+        sbtItem: item,
+        content: 'ipfs://SBT_COLLECTION',
+        versionType: 'SBT:1'
+    }, compiled));
 
     console.log("COMPILED", compiled, sbtCollection)
 

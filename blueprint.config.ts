@@ -5,5 +5,6 @@ export const config: Config = {
 }
 
 export const xircus = {
-  nft: ['NftCollection', 'NftItem']
+  nft: ['NftCollection', 'NftItem'],
+  sbt: ['SbtCollection', 'SbtItem']
 }

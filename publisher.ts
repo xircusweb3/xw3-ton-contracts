@@ -1,17 +1,44 @@
 import { config, xircus } from './blueprint.config'
 const { isBlueprint } = require('./utils/detect')
 const { ipfsUpload } = require('./utils/ipfs')
-const { Prompt, Select } = require('enquirer')
+const { Select } = require('enquirer')
 const { readFileSync } = require('fs')
 const { snakecase } = require('snakecase')
 import { compile } from '@ton/blueprint'
-import { Cell } from '@ton/core'
-
+const qr = require('qrcode-terminal')
 
 const extractFC = async(file: any) => {
   const currentPath = process.cwd()
   const slug = snakecase(file)
-  const fc = await readFileSync(currentPath + `/contracts/${slug}.fc`, 'utf-8')  
+  const content = await readFileSync(currentPath + `/contracts/${slug}.fc`, 'utf-8')
+
+  let params:any = {}
+  let getters:any = []
+
+  const inits:any = content.match(/\b(save_data|store_data)\s*\(([^)]*)\)/)
+  const methods = content.match(/^(.*\s+method_id)/gm)
+
+  if (methods) {
+    getters = methods.map((line: any) => {
+      const matches = line.match(/^((\(.+?\)|(\w+)))\s+(\w+)\((.+?)?\)/)
+      // console.log("LINE", line, matches)
+      return {
+        name: matches[4],
+        returnType: extractReturns(matches[2]),
+        params: extractParams(matches[5] || '')
+      }
+    })
+  }
+
+  if (inits) {
+    params = extractParams(inits[2])
+  }
+
+  return {
+    params,
+    getters,
+    contractName: slug
+  }
 }
 
 const extractParams = (str:string) => {
@@ -30,6 +57,11 @@ const extractReturns = (str:string) => str.replace(/[()]/g, '').split(',').map((
 const main = async() => {
   const currentPath = process.cwd()
   const bp = isBlueprint(currentPath)
+
+  if (!bp) {
+    process.exit(0)
+  }
+
   console.log("BLUEPRINT PROJECT", bp)
 
 
@@ -44,9 +76,7 @@ const main = async() => {
   const files = Object.values(xircus)[Object.keys(xircus).indexOf(selected)]
   // const baseContract = Cell.fromBase64(base64Contract) -- base64 to cell
 
-  let contracts: any = {
-
-  }
+  let contracts: any = {}
 
   // TODO: ABI
 
@@ -54,32 +84,10 @@ const main = async() => {
     try {
       const contract = await compile(file)
       const base64Contract = contract.toBoc().toString('base64')
-      const slug = snakecase(file)
-      const fc = await readFileSync(currentPath + `/contracts/${slug}.fc`, 'utf-8')
-
-      let params:any = []
-      let methods = []
-
-      const match:any = fc.match(/\b(save_data|store_data)\s*\(([^)]*)\)/)
-      const methodMatch = fc.match(/^(.*\s+method_id)/gm)
-      const getters = methodMatch.map((line: any) => {
-        const matches = line.match(/^((\(.+?\)|(\w+)))\s+(\w+)\((.+?)?\)/)
-        // console.log("LINE", line, matches)
-        return {
-          name: matches[4],
-          returnType: extractReturns(matches[2]),
-          params: extractParams(matches[5] || '')
-        }
-      })
-
-      if (match) {
-        params = extractParams(match[2])
-        // console.log("PARAMS", params)
-      }
-
+      const { contractName, getters, params } = await extractFC(file)
       contracts[file] = {
-        contract: slug,
         getters,
+        contract: contractName,
         constructor: params,
         code: base64Contract
       }
@@ -91,13 +99,22 @@ const main = async() => {
   const contractCode = {
     contracts,
     version: 1,
-    compiledBy: 'Xircus',
-    compiledAt: Date.now()
+    compiledBy: 'Xircus'
+  }
+  
+  console.log(`\n\nPublishing Contracts...`)
+  const reply = await ipfsUpload(JSON.stringify(contractCode)) 
+
+  if (reply.Hash) {
+    console.log(`\n\n`)
+    console.log(`   Open the link below to view on TON Studio:\n`)
+    console.log(`   ${`https://ton.xircus.app/contracts/deploy/${reply.Hash}`}`)
+    console.log(`   ${`https://cloudflare-ipfs.com/ipfs/${reply.Hash}`}\n\n`)    
+
+    qr.generate(`https://cloudflare-ipfs.com/ipfs/${reply.Hash}`, { small: true })
+
   }
 
-  console.log("PUBLISHING", contractCode)
-  const reply = await ipfsUpload(JSON.stringify(contractCode)) 
-  console.log("REPLY", reply)
 }
 
 main()

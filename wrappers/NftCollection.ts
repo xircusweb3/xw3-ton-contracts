@@ -5,10 +5,6 @@ export type NftCollectionConfig = {
     content: Cell,
     nftItem: Cell,
     royalty: Cell
-};
-
-type MintParams = {
-
 }
 
 export function nftCollectionConfigToCell(config: NftCollectionConfig): Cell {

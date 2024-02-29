@@ -31,3 +31,4 @@
 - https://github.com/romanovichim/TonFunClessons_Eng
 - https://github.com/ton-blockchain/token-contract/tree/main/ft
 - https://github.com/ton-blockchain/liquid-staking-contract/tree/main/contracts
+- https://github.com/somewallet/ton_nft_dapp/blob/master/contracts/freelancers_nft.fc
