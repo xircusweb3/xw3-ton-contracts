@@ -26,4 +26,26 @@ export class SbtItem implements Contract {
             body: beginCell().endCell(),
         });
     }
+
+    async getAuthorityAddr(provider: ContractProvider) {
+        const { stack } = await provider.get('get_authority_address', [])
+        return stack.readAddress()
+    }
+
+
+    async getItemData(provider: ContractProvider) {
+        const { stack } = await provider.get('get_nft_data', [])
+        const init = stack.readNumber()
+        const nftId = stack.readNumber()
+        const collection = stack.readAddress()
+        const authority = stack.readAddress()
+        const content = stack.readString()
+        return {
+            init,
+            nftId,
+            collection,
+            authority,
+            content
+        }       
+    }    
 }

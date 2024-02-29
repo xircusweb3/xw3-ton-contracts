@@ -26,4 +26,20 @@ export class NftItem implements Contract {
             body: beginCell().endCell(),
         });
     }
+
+    async getItemData(provider: ContractProvider) {
+        const { stack } = await provider.get('get_nft_data', [])
+        console.log("NFT ITEM DATA", stack)
+        // const init = stack.readNumber()
+        // const nftId = stack.readNumber()
+ 
+        // return {
+        //     init,
+        //     nftId,
+        //     collection: stack.readAddress(),
+            // owner: stack.readAddress(),
+            // content: stack.readString()
+        // }       
+    }   
+
 }

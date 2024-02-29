@@ -7,6 +7,15 @@ export type SbtCollectionConfig = {
     versionType: string
 }
 
+export type MintParams = {
+    queryId: number | null,
+    owner: Address,
+    nftId: number,
+    nftAmount: bigint,
+    contentUrl: string,
+    gas: bigint,
+}
+
 export function sbtCollectionConfigToCell(config: SbtCollectionConfig): Cell {
 
     const content = beginCell()
@@ -64,4 +73,48 @@ export class SbtCollection implements Contract {
             owner
         }
     }  
+
+    static mintMessage(params: MintParams) {
+        const uriContent = beginCell().storeStringTail(params.contentUrl).endCell()
+
+        // ;;  uint64 index
+        // ;;  MsgAddressInt collection_address
+        // ;;  MsgAddressInt owner_address
+        // ;;  cell content
+        // ;;  MsgAddressInt authority_address
+        // ;;  uint64 revoked_at
+
+        const body = beginCell()
+            .storeAddress(params.owner)
+            .storeRef(beginCell().storeRef(uriContent).endCell())
+            .storeAddress(params.owner)
+            .storeUint(0, 64)
+            .endCell()
+
+        return beginCell()
+            .storeUint(1, 32)                       // Mint Operation
+            .storeUint(params.queryId || 0, 64)     // Query ID
+            .storeUint(params.nftId, 64)           // NFT ID
+            .storeCoins(params.nftAmount)          // Initial Balance
+            .storeRef(body)                         // IPFS URL
+            .endCell()
+    }
+
+    async sendMint(
+        provider: ContractProvider, 
+        via: Sender, 
+        params: MintParams
+    ) {
+        await provider.internal(via, {
+            value: params.gas,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: SbtCollection.mintMessage(params),
+        })
+    }    
+
+    async getItemAddr(provider: ContractProvider, nftId: number) {
+        let { stack } = await provider.get('get_nft_address_by_index', [{ type: 'int', value: BigInt(nftId) }]);
+        return stack.readAddress()
+    }
+
 }

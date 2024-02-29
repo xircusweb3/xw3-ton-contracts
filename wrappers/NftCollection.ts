@@ -2,17 +2,31 @@ import { Address, beginCell, Cell,  Contract, contractAddress, ContractProvider,
 
 export type NftCollectionConfig = {
     owner: Address,
-    content: Cell,
-    nftItem: Cell,
+    item: Cell,
+    content: string,
     royalty: Cell
 }
 
+export type MintParams = {
+    queryId: number | null,
+    owner: Address,
+    nftId: number,
+    nftAmount: bigint,
+    contentUrl: string,
+    gas: bigint,
+}
+
 export function nftCollectionConfigToCell(config: NftCollectionConfig): Cell {
+
+    const content = beginCell()
+        .storeRef(beginCell().storeStringTail(config.content).endCell())
+        .endCell()
+
     return beginCell()
         .storeAddress(config.owner)
         .storeUint(0, 64)
-        .storeRef(config.content)
-        .storeRef(config.nftItem)
+        .storeRef(content)
+        .storeRef(config.item)
         .storeRef(config.royalty)
         .endCell()
 }
@@ -55,31 +69,35 @@ export class NftCollection implements Contract {
         return stack.readAddress()
     }
 
-    static mintMessage(nftAmount: bigint, nftId: number, content: string) {
-        const uriContent = beginCell().storeStringTail(content).endCell()
+    static mintMessage(params: MintParams) {
+
+        const uriContent = beginCell().storeStringTail(params.contentUrl).endCell()
+
+        const body = beginCell()
+            .storeAddress(params.owner)
+            .storeRef(beginCell().storeRef(uriContent).endCell())
+            .storeAddress(params.owner)
+            .storeRef(beginCell().storeRef(uriContent).endCell())            
+            .endCell()
+
         return beginCell()
-            .storeUint(1, 32)               // Mint Operation
-            .storeUint(0, 64)               // Query ID
-            .storeUint(nftId, 64)           // NFT ID
-            .storeCoins(nftAmount)          // Initial Balance
-            .storeRef(uriContent)           // IPFS URL
+            .storeUint(1, 32)                       // Mint Operation
+            .storeUint(params.queryId || 0, 64)     // Query ID
+            .storeUint(params.nftId, 64)            // NFT ID
+            .storeCoins(params.nftAmount)           // Initial Balance
+            .storeRef(body)                         // Mint Body
             .endCell()
     }
 
     async sendMint(
         provider: ContractProvider, 
         via: Sender, 
-        opts: {
-            nftAmount: bigint, 
-            nftId: number, 
-            content: string, 
-            value: bigint  
-        }
+        params: MintParams
     ) {
         await provider.internal(via, {
-            value: opts.value,
+            value: params.gas,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
-            body: NftCollection.mintMessage(opts.nftAmount, opts.nftId, opts.content),
+            body: NftCollection.mintMessage(params),
         })
     }
 }
