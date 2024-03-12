@@ -1,5 +1,5 @@
 import { config, xircus } from './blueprint.config'
-const { isBlueprint } = require('./utils/detect')
+const { isBlueprint, hasBlueprint } = require('./utils/detect')
 const { ipfsUpload } = require('./utils/ipfs')
 const { Select } = require('enquirer')
 const { readFileSync } = require('fs')
@@ -57,13 +57,14 @@ const extractReturns = (str:string) => str.replace(/[()]/g, '').split(',').map((
 const main = async() => {
   const currentPath = process.cwd()
   const bp = isBlueprint(currentPath)
+  const bpVersion = hasBlueprint(currentPath)
 
   if (!bp) {
     process.exit(0)
   }
 
-  console.log("BLUEPRINT PROJECT", bp)
 
+  console.log("BLUEPRINT PROJECT", bp)
 
   const names = Object.keys(xircus)
 
@@ -96,9 +97,18 @@ const main = async() => {
     }
   }
 
+  const ctrNames = Object.keys(contracts)
+
   const contractCode = {
+    name: selected,
+    desc: '',
+    mainContract: contracts[ctrNames[0]]?.contract, // parent contract
+    itemContract: ctrNames.length > 1 ? contracts[ctrNames[1]]?.contract : false, // next contract is child
+    names: ctrNames,
+    // itemContract: contracts[1].contract,
     contracts,
     version: 1,
+    blueprint: bpVersion,
     compiledBy: 'Xircus'
   }
   

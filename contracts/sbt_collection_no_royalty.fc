@@ -116,11 +116,11 @@ slice calculate_nft_item_address(int wc, cell state_init) {
 }
 
 ;; Get methods
-;; cell get_version_type() method_id {
-;;   var (_, _, _, _, version_type) = load_data();   
-;;   slice cs = version_type.begin_parse();
-;;   return cs~load_ref();
-;; }
+cell get_version_type() method_id {
+  var (_, _, _, _, version_type) = load_data();   
+  slice cs = version_type.begin_parse();
+  return cs~load_ref();
+}
 
 (int, cell, slice) get_collection_data() method_id {
   var (owner_address, next_item_index, content, _, _) = load_data();

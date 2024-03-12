@@ -1,0 +1,10 @@
+#include "imports/stdlib.fc";
+
+;; Subscription Contract for anything
+;; get_subscription_data address:subscriber string:content uint:expiration
+;; op::subscribe
+;; 
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+
+}

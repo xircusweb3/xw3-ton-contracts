@@ -5,6 +5,11 @@ export const config: Config = {
 }
 
 export const xircus = {
-  nft: ['NftCollection', 'NftItem'],
-  sbt: ['SbtCollection', 'SbtItem']
+  SimpleNFT: ['NftCollection', 'NftItem'],
+  SBTCollection: ['SbtCollection', 'SbtItem'],
+  NFTEditable: ['NftCollectionEditable', 'NftItemEditable'],
+  NFTMarketplaceDirect: ['NftMarketplace', 'NftSale'],
+  NFTMarketplaceAuction: ['NftMarketplace', 'NftAuction'],  
+  Jetton: ['JettonMinter', 'JettonWallet'],
+  JettonSale: ['JettonSale', 'JettonWallet']  
 }
