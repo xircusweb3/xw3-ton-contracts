@@ -12,6 +12,8 @@ const extractFC = async(file: any) => {
   const slug = snakecase(file)
   const content = await readFileSync(currentPath + `/contracts/${slug}.fc`, 'utf-8')
 
+  const reply = await ipfsUpload(content)
+
   let params:any = {}
   let getters:any = []
 
@@ -37,7 +39,8 @@ const extractFC = async(file: any) => {
   return {
     params,
     getters,
-    contractName: slug
+    contractName: slug,
+    codeUrl: reply.Hash
   }
 }
 
@@ -85,9 +88,10 @@ const main = async() => {
     try {
       const contract = await compile(file)
       const base64Contract = contract.toBoc().toString('base64')
-      const { contractName, getters, params } = await extractFC(file)
+      const { contractName, getters, params, codeUrl } = await extractFC(file)
       contracts[file] = {
         getters,
+        codeUrl,
         contract: contractName,
         constructor: params,
         code: base64Contract
@@ -101,15 +105,15 @@ const main = async() => {
 
   const contractCode = {
     name: selected,
-    desc: '',
-    mainContract: contracts[ctrNames[0]]?.contract, // parent contract
-    itemContract: ctrNames.length > 1 ? contracts[ctrNames[1]]?.contract : false, // next contract is child
+    license: 'Unlicensed',
+    // desc: 'Smart Contract by Xircus for Testing Purposes Only',
+    mainContract: ctrNames[0], // parent contract
+    itemContract: ctrNames.length > 1 ? ctrNames[1] : false, // next contract is child
     names: ctrNames,
-    // itemContract: contracts[1].contract,
     contracts,
     version: 1,
     blueprint: bpVersion,
-    compiledBy: 'Xircus'
+    publisher: 'Xircus CLI'
   }
   
   console.log(`\n\nPublishing Contracts...`)
