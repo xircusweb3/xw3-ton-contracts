@@ -6,7 +6,7 @@ export async function run(provider: NetworkProvider) {
 
     const compiled = await compile('SbtCollection')
 
-    const item = await compile('NftItem')
+    const item = await compile('SbtItem')
 
     const owner:any = provider?.sender().address?.toString()
 
